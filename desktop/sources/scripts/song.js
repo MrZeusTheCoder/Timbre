@@ -1,3 +1,6 @@
+const { contentTracing } = require("electron");
+const util = require('util');
+
 var Song = function()
 {
   var MAX_SONG_ROWS = 32,
@@ -226,6 +229,45 @@ var Song = function()
     generateAudio(doneFun,opts);
   };
 
+  this.export_multi_wav = function()
+  {
+    stopAudio();
+    updateSongRanges();
+
+    var fileName = dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] }); 
+    var currentTrack = 0;
+
+    //.generate is an async function. Unique players are required for each track.
+    var trackPlayers = new Array(16);
+    for(var i = 0; i < 16; i++){
+      trackPlayers[i] = new CPlayer();
+    }
+
+    var display_progress_el = document.getElementById("fxr31");
+
+    for (let currentTrack = 0; currentTrack < 16; currentTrack++) {
+      let opts = {
+        firstRow: 0,
+        lastRow: mSong.endPattern - 1,
+        firstCol: currentTrack,
+        lastCol: currentTrack
+      }
+
+      trackPlayers[currentTrack].trackID = currentTrack;
+      trackPlayers[currentTrack].generate(mSong, opts, function(progress, player, trackID){
+        if(progress >= 1){
+          let wave = player.createWave();
+          display_progress_el.className = "fl";
+          fs.writeFile(fileName + "." + player.trackID + ".wav", new Buffer(wave), (err) => {
+          if(err) alert("An error ocurred creating the file "+ err.message);  });
+        } else {
+          display_progress_el.className = "b_inv f_inv";
+          display_progress_el.textContent = "WRKN";
+        }
+      });
+    }
+  };
+
   this.calculate_time = function(pos = (8 * (marabu.song.length+1)))
   {
     var bpm = parseFloat(marabu.song.song().bpm);
@@ -241,15 +283,11 @@ var Song = function()
     var display_progress_el = document.getElementById("fxr31");
     var song = mSong;
     var render_time = marabu.song.calculate_time();
-    var minutes = Math.floor(render_time/60.0);
-    var seconds = Math.floor(render_time % 60);
 
-    var d1 = new Date();
     mPlayer = new CPlayer();
-    mPlayer.generate(song, opts, function(progress){
+    mPlayer.generate(song, opts, function(progress, player){
       if(progress >= 1){
-        var wave = mPlayer.createWave();
-        var d2 = new Date();
+        var wave = player.createWave();
         doneFun(wave);
         display_progress_el.className = "fl";
       }

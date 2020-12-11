@@ -23,6 +23,9 @@
 
 var CPlayer = function ()
 {
+  //Optional trackID for use with multi-tracked output.
+  var trackID = 0;
+  var mParent = this;
   var mProgressCallback;
 
   var mGeneratedBuffer;
@@ -33,7 +36,7 @@ var CPlayer = function ()
     if (event.data.cmd === "progress") {
       mGeneratedBuffer = event.data.buffer;
       if (mProgressCallback) {
-        mProgressCallback(event.data.progress);
+        mProgressCallback(event.data.progress, mParent, trackID);
       }
     }
   };

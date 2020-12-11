@@ -57,6 +57,8 @@ function Marabu()
     this.controller.add("default","File","Save",() => { marabu.save(); },"CmdOrCtrl+S");
     this.controller.add("default","File","Save As",() => { marabu.export(); },"CmdOrCtrl+Shift+S");
     this.controller.add("default","File","Render",() => { marabu.render(); },"CmdOrCtrl+R");
+    //TODO: Poo
+    this.controller.add("default","File","Multi-track Render",() => { marabu.render_multi(); },"CmdOrCtrl+Shift+R")
     this.controller.add("default","File","Export Ins",() => { marabu.export_instrument(); },"CmdOrCtrl+I");
     this.controller.add("default","Edit","Inc BPM",() => { marabu.move_bpm(5) },">");
     this.controller.add("default","Edit","Dec BPM",() => { marabu.move_bpm(-5) },"<");
@@ -484,6 +486,11 @@ function Marabu()
   this.render = function(val, is_passive = false)
   {
     this.song.export_wav();
+  }
+
+  //Does a multi-track rendering of the song.
+  this.render_multi = function(){
+    this.song.export_multi_wav();
   }
 
   this.reset = function()
