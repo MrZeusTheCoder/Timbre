@@ -57,26 +57,54 @@ var CPlayer = function ()
     });
   };
 
+  function int32ToUint8Array(int){
+    return new Uint8Array([int & 255, (int >> 8) & 255, (int >> 16) & 255, (int >> 24) & 255]);
+  }
+
+  function createWaveHeader(waveWords){
+    const headerLen = 44;
+    const RIFF = new Uint8Array([82,73,70,70]);
+    const WAVE = new Uint8Array([87,65,86,69]);
+    //Format Chunk Identifier.
+    const fmtI = new Uint8Array([102,109,116,32]);
+    //Length of the format data (16 for PCM). 
+    const fmtL = 16;
+    //PCM use Identifier.
+    const PCMI = int32ToUint8Array(0x000001);
+    const channels = 2; //Stereo
+    const sampleRate = int32ToUint8Array(44100);
+
+    console.log(sampleRate);
+    
+    
+    var fullFileLength = headerLen + (waveWords * channels);
+    var fileSize = int32ToUint8Array(fullFileLength - 8);
+    var fileSizeNoHeader = int32ToUint8Array(fullFileLength - 44);
+
+    var waveHeader = new Uint8Array(headerLen);
+    waveHeader.set(
+      [RIFF,
+       fileSize,
+       WAVE,
+       fmtL,
+       PCMI,
+       0, //Padding for channel specifier.
+       channels,
+       0,68,172,0,0,16,177,2,0,4,0,16,0,100,97,116,97,
+       fileSizeNoHeader]
+    );
+  }
+
   // Create a WAVE formatted Uint8Array from the generated audio data.
   this.createWave = function()
   {
     // Turn critical object properties into local variables (performance)
-    var mixBuf = mGeneratedBuffer,
-        waveWords = mixBuf.length;
-
-    // Create WAVE header
-    var headerLen = 44;
-    var l1 = headerLen + waveWords * 2 - 8;
-    var l2 = l1 - 36;
+    var mixBuf = mGeneratedBuffer;
+    var waveWords = mixBuf.length;
+    
+    const headerLen = 44;
     var wave = new Uint8Array(headerLen + waveWords * 2);
-    wave.set(
-      [82,73,70,70,
-       l1 & 255,(l1 >> 8) & 255,(l1 >> 16) & 255,(l1 >> 24) & 255,
-       87,65,86,69,102,109,116,32,16,0,0,0,1,0,2,0,
-       68,172,0,0,16,177,2,0,4,0,16,0,100,97,116,97,
-       l2 & 255,(l2 >> 8) & 255,(l2 >> 16) & 255,(l2 >> 24) & 255]
-    );
-
+    wave += createWaveHeader(waveWords);
     // Append actual wave data
     for(var i = 0, idx = headerLen; i < waveWords; ++i){
       // Note: We clamp here
