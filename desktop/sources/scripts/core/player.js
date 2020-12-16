@@ -61,7 +61,11 @@ var CPlayer = function ()
     return new Uint8Array([int & 255, (int >> 8) & 255, (int >> 16) & 255, (int >> 24) & 255]);
   }
 
-  function createWaveHeader(waveWords){
+
+  //Super useful resources: http://www.topherlee.com/software/pcm-tut-wavformat.html
+  //http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+  //Not included in original Marabu source. This is part of upgrades.
+  function createWaveHeader(waveWords, sampleRate, bitSize){
     const headerLen = 44;
     const RIFF = new Uint8Array([82,73,70,70]);
     const WAVE = new Uint8Array([87,65,86,69]);
@@ -72,27 +76,43 @@ var CPlayer = function ()
     //PCM use Identifier.
     const PCMI = int32ToUint8Array(0x000001);
     const channels = 2; //Stereo
-    const sampleRate = int32ToUint8Array(44100);
-
-    console.log(sampleRate);
-    
+    const samplesPerSecond = int32ToUint8Array(sampleRate);
+    //I don't know what this is, tbf.
+    const something = int32ToUint8Array((samplesPerSecond * bitSize * channels) / 8); 
+    const anotherSomething = new Uint8Array([(bitSize * channels) / 8, 0]);
+    const bitDepth = new Uint8Array([bitSize, 0]);
+    const dataHeader = new Uint8Array([100,97,116,97])
     
     var fullFileLength = headerLen + (waveWords * channels);
     var fileSize = int32ToUint8Array(fullFileLength - 8);
-    var fileSizeNoHeader = int32ToUint8Array(fullFileLength - 44);
+    console.log(fileSize);
+    var dataSize = int32ToUint8Array(fullFileLength - 44);
 
     var waveHeader = new Uint8Array(headerLen);
-    waveHeader.set(
-      [RIFF,
-       fileSize,
-       WAVE,
-       fmtL,
-       PCMI,
-       0, //Padding for channel specifier.
-       channels,
-       0,68,172,0,0,16,177,2,0,4,0,16,0,100,97,116,97,
-       fileSizeNoHeader]
-    );
+    waveHeader.set(RIFF);
+    waveHeader.set(fileSize, 4);
+    waveHeader.set(WAVE, 8);
+    waveHeader.set();
+
+    /*
+     [RIFF,
+      fileSize,
+      WAVE,
+      fmtI,
+      fmtL,
+      PCMI,
+      0, //Padding for channel specifier.
+      channels,
+      0, //Padding for sample rate.
+      samplesPerSecond,
+      something,
+      anotherSomething,
+      bitDepth,
+      dataHeader,
+      dataSize]
+    */
+    waveHeader
+    return waveHeader;
   }
 
   // Create a WAVE formatted Uint8Array from the generated audio data.
@@ -102,9 +122,10 @@ var CPlayer = function ()
     var mixBuf = mGeneratedBuffer;
     var waveWords = mixBuf.length;
     
-    const headerLen = 44;
+    var headerLen = 44;
     var wave = new Uint8Array(headerLen + waveWords * 2);
-    wave += createWaveHeader(waveWords);
+    wave.set(createWaveHeader(waveWords, 44100, 16));
+    console.log(wave);
     // Append actual wave data
     for(var i = 0, idx = headerLen; i < waveWords; ++i){
       // Note: We clamp here
