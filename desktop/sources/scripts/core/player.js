@@ -76,42 +76,33 @@ var CPlayer = function ()
     //PCM use Identifier.
     const PCMI = int32ToUint8Array(0x000001);
     const channels = 2; //Stereo
-    const samplesPerSecond = int32ToUint8Array(sampleRate);
+    const sampleRateArray = int32ToUint8Array(sampleRate);
     //I don't know what this is, tbf.
-    const something = int32ToUint8Array((samplesPerSecond * bitSize * channels) / 8); 
+    const something = int32ToUint8Array((sampleRate * bitSize * channels) / 8); 
     const anotherSomething = new Uint8Array([(bitSize * channels) / 8, 0]);
     const bitDepth = new Uint8Array([bitSize, 0]);
     const dataHeader = new Uint8Array([100,97,116,97])
     
-    var fullFileLength = headerLen + (waveWords * channels);
-    var fileSize = int32ToUint8Array(fullFileLength - 8);
-    console.log(fileSize);
-    var dataSize = int32ToUint8Array(fullFileLength - 44);
+    const fullFileLength = headerLen + (waveWords * channels);
+    const fileSize = int32ToUint8Array(fullFileLength - 8);
+    const dataSize = int32ToUint8Array(fullFileLength - 44);
 
     var waveHeader = new Uint8Array(headerLen);
+    //Second argument dictates offset.
     waveHeader.set(RIFF);
     waveHeader.set(fileSize, 4);
     waveHeader.set(WAVE, 8);
-    waveHeader.set();
+    waveHeader.set(fmtI, 12);
+    waveHeader.set([fmtL], 16);
+    waveHeader.set(PCMI, 20);
+    waveHeader.set([channels], 22);
+    waveHeader.set(sampleRateArray, 24);
+    waveHeader.set(something, 28);
+    waveHeader.set(anotherSomething, 32);
+    waveHeader.set(bitDepth, 34);
+    waveHeader.set(dataHeader, 36);
+    waveHeader.set(dataSize, 40);
 
-    /*
-     [RIFF,
-      fileSize,
-      WAVE,
-      fmtI,
-      fmtL,
-      PCMI,
-      0, //Padding for channel specifier.
-      channels,
-      0, //Padding for sample rate.
-      samplesPerSecond,
-      something,
-      anotherSomething,
-      bitDepth,
-      dataHeader,
-      dataSize]
-    */
-    waveHeader
     return waveHeader;
   }
 
@@ -125,7 +116,7 @@ var CPlayer = function ()
     var headerLen = 44;
     var wave = new Uint8Array(headerLen + waveWords * 2);
     wave.set(createWaveHeader(waveWords, 44100, 16));
-    console.log(wave);
+
     // Append actual wave data
     for(var i = 0, idx = headerLen; i < waveWords; ++i){
       // Note: We clamp here

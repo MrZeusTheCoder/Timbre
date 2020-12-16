@@ -234,8 +234,7 @@ var Song = function()
     stopAudio();
     updateSongRanges();
 
-    var fileName = //dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] }); 
-    "/home/zeus/Desktop/Marabu/Test_Renders/poo";
+    var fileName = dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] });
     var currentTrack = 0;
 
     //.generate is an async function. Unique players are required for each track.
