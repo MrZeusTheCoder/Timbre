@@ -70,7 +70,12 @@ var CPlayer = function ()
   //Same as above just to 16-bit.
   function convertTo8_2Array(number){
     // Note: taken from old. Once the player-worker is fixed, this code will change.
-    y = y < -INT16_MAX ? -INT16_MAX : (y > INT16_MAX ? INT16_MAX : y);
+    if(number < -INT16_MAX){
+      number = -INT16_MAX;
+    } else if(number > INT16_MAX){
+      number = INT16_MAX;
+    }
+
     return [number & 255, (number >> 8) & 255];
   }
 
@@ -140,12 +145,12 @@ var CPlayer = function ()
     //---------------APPEND_WAVE_DATA---------------//
     var waveBufIndex = headerLen; //Where we are writing into the WAVE buffer.
     for(var i = 0; i < waveWords; ++i){
-      var y = mixBuf[i];
+      var sample = mixBuf[i];
 
       if(bitDepth == 32){
-        wave.set(convertTo8_4Array(y), waveBufIndex);
+        wave.set(convertTo8_4Array(sample), waveBufIndex);
       } else {
-        wave.set(convertTo8_2Array(y), waveBufIndex);
+        wave.set(convertTo8_2Array(sample), waveBufIndex);
       }
 
       waveBufIndex += Uint8sInBitWord;
