@@ -485,12 +485,15 @@ function Marabu()
 
   this.render = function(val, is_passive = false)
   {
-    this.song.export_wav();
+    //var fileName = dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] });
+    this.song.export_wav(/*fileName*/);
   }
 
   //Does a multi-track rendering of the song.
   this.render_multi = function(){
-    this.song.export_multi_wav();
+    //var fileName = dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] });
+    var fileName = "/home/zeus/Desktop/Marabu/Test_Renders/poo"
+    this.song.export_multi_wav(fileName);
   }
 
   this.reset = function()

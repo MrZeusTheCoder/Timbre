@@ -57,10 +57,22 @@ var CPlayer = function ()
     });
   };
 
-  function int32ToUint8Array(int){
+  //Only shifting, not scaling.
+  function shiftTo8_4Array(int){
     return new Uint8Array([int & 255, (int >> 8) & 255, (int >> 16) & 255, (int >> 24) & 255]);
   }
 
+  //64-bit ("number" type) to Uint8[4] (32-bit) array. 
+  function convertTo8_4Array(number){
+    return shiftTo8_4Array(number);
+  }
+
+  //Same as above just to 16-bit.
+  function convertTo8_2Array(number){
+    // Note: taken from old. Once the player-worker is fixed, this code will change.
+    y = y < -INT16_MAX ? -INT16_MAX : (y > INT16_MAX ? INT16_MAX : y);
+    return [number & 255, (number >> 8) & 255];
+  }
 
   //Super useful resources: http://www.topherlee.com/software/pcm-tut-wavformat.html
   //http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
@@ -74,18 +86,18 @@ var CPlayer = function ()
     //Length of the format data (16 for PCM). 
     const fmtL = 16;
     //PCM use Identifier.
-    const PCMI = int32ToUint8Array(0x000001);
+    const PCMI = shiftTo8_4Array(0x000001);
     const channels = 2; //Stereo
-    const sampleRateArray = int32ToUint8Array(sampleRate);
+    const sampleRateArray = shiftTo8_4Array(sampleRate);
     //I don't know what this is, tbf.
-    const something = int32ToUint8Array((sampleRate * bitSize * channels) / 8); 
+    const something = shiftTo8_4Array((sampleRate * bitSize * channels) / 8); 
     const anotherSomething = new Uint8Array([(bitSize * channels) / 8, 0]);
     const bitDepth = new Uint8Array([bitSize, 0]);
     const dataHeader = new Uint8Array([100,97,116,97])
     
     const fullFileLength = headerLen + (waveWords * channels);
-    const fileSize = int32ToUint8Array(fullFileLength - 8);
-    const dataSize = int32ToUint8Array(fullFileLength - 44);
+    const fileSize = shiftTo8_4Array(fullFileLength - 8);
+    const dataSize = shiftTo8_4Array(fullFileLength - 44);
 
     var waveHeader = new Uint8Array(headerLen);
     //Second argument dictates offset.
@@ -107,23 +119,36 @@ var CPlayer = function ()
   }
 
   // Create a WAVE formatted Uint8Array from the generated audio data.
-  this.createWave = function()
+  this.createWave = function(bitDepth=16)
   {
+    if(bitDepth != 32 && bitDepth != 16){
+      throw 'No other bit depth except 32 or 16 is support (right now).';
+    }
+    
+    const channels = 2;
+   
     // Turn critical object properties into local variables (performance)
     var mixBuf = mGeneratedBuffer;
     var waveWords = mixBuf.length;
     
+    //---------------MAKE_WAVE_HEADER---------------//
     var headerLen = 44;
-    var wave = new Uint8Array(headerLen + waveWords * 2);
-    wave.set(createWaveHeader(waveWords, 44100, 16));
+    var Uint8sInBitWord = bitDepth / 8;
+    var wave = new Uint8Array(headerLen + waveWords * Uint8sInBitWord);
+    wave.set(createWaveHeader(waveWords, 44100, bitDepth));
 
-    // Append actual wave data
-    for(var i = 0, idx = headerLen; i < waveWords; ++i){
-      // Note: We clamp here
+    //---------------APPEND_WAVE_DATA---------------//
+    var waveBufIndex = headerLen; //Where we are writing into the WAVE buffer.
+    for(var i = 0; i < waveWords; ++i){
       var y = mixBuf[i];
-      y = y < -32767 ? -32767 : (y > 32767 ? 32767 : y);
-      wave[idx++] = y & 255;
-      wave[idx++] = (y >> 8) & 255;
+
+      if(bitDepth == 32){
+        wave.set(convertTo8_4Array(y), waveBufIndex);
+      } else {
+        wave.set(convertTo8_2Array(y), waveBufIndex);
+      }
+
+      waveBufIndex += Uint8sInBitWord;
     }
 
     // Return the WAVE formatted typed array

@@ -219,22 +219,40 @@ var Song = function()
     
     var doneFun = function(wave)
     {
-      dialog.showSaveDialog({filters:[{name:'Audio File',extensions:['wav']}]},(fileName) => {
-        if (fileName === undefined){ return; }
-        fs.writeFile(`${fileName.substr(-4,4) != ".wav" ? fileName+".wav" : fileName}`, new Buffer(wave), (err) => {
-          if(err){ alert("An error ocurred creating the file "+ err.message); return; }
-        });
-      }); 
+      var fileName = dialog.showSaveDialog({filters:[{name:'Audio File',extensions:['wav']}]});
+      if (fileName === undefined){ return; }
+      fs.writeFile(`${fileName.substr(-4,4) != ".wav" ? fileName+".wav" : fileName}`, new Buffer(wave), (err) => {
+        if(err){ alert("An error ocurred creating the file "+ err.message); return; }
+      });
     };
     generateAudio(doneFun,opts);
   };
 
-  this.export_multi_wav = function()
+  //Only used by export_wav. Multi-tracking is wayyy diff.
+  var generateAudio = function(doneFun, opts)
+  {
+    var display_progress_el = document.getElementById("fxr31");
+    var song = mSong;
+
+    mPlayer = new CPlayer();
+    mPlayer.generate(song, opts, function(progress, player){
+      if(progress >= 1){
+        var wave = player.createWave();
+        doneFun(wave);
+        display_progress_el.className = "fl";
+      }
+      else{
+        display_progress_el.className = "b_inv f_inv";
+        display_progress_el.textContent = prepend_to_length(parseInt(progress * 100),4,"0");
+      }
+    });
+  };
+
+  this.export_multi_wav = function(fileName)
   {
     stopAudio();
     updateSongRanges();
 
-    var fileName = dialog.showSaveDialog({ filters: [{ name: 'Audio File', extensions: ['wav'] }] });
     var currentTrack = 0;
 
     //.generate is an async function. Unique players are required for each track.
@@ -277,26 +295,6 @@ var Song = function()
 
     return seconds;
   }
-
-  var generateAudio = function(doneFun, opts, override_song = null)
-  {
-    var display_progress_el = document.getElementById("fxr31");
-    var song = mSong;
-    var render_time = marabu.song.calculate_time();
-
-    mPlayer = new CPlayer();
-    mPlayer.generate(song, opts, function(progress, player){
-      if(progress >= 1){
-        var wave = player.createWave();
-        doneFun(wave);
-        display_progress_el.className = "fl";
-      }
-      else{
-        display_progress_el.className = "b_inv f_inv";
-        display_progress_el.textContent = prepend_to_length(parseInt(progress * 100),4,"0");
-      }
-    });
-  };
 
   var stopAudio = function ()
   {
