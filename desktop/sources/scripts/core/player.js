@@ -69,6 +69,7 @@ var CPlayer = function ()
 
   //Same as above just to 16-bit.
   function convertTo8_2Array(number){
+    const INT16_MAX = 32767;
     // Note: taken from old. Once the player-worker is fixed, this code will change.
     if(number < -INT16_MAX){
       number = -INT16_MAX;

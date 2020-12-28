@@ -1,7 +1,5 @@
 function Instrument()
 {
-  var target = this;
-
   this.el = null;
 
   this.start = function()
@@ -46,7 +44,8 @@ function Instrument()
         pan        : new UI_Slider({name: "PAN", min: 0,  max: 255, center:true })
       },
       uv : {
-        monitor    : new UI_Uv()
+        monitor    : new UI_Uv(),
+        phonotype : new UI_Switch({name_left: "MONO", name_right: "POLY", value: true }),
       }
     };
 

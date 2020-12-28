@@ -57,7 +57,6 @@ function Marabu()
     this.controller.add("default","File","Save",() => { marabu.save(); },"CmdOrCtrl+S");
     this.controller.add("default","File","Save As",() => { marabu.export(); },"CmdOrCtrl+Shift+S");
     this.controller.add("default","File","Render",() => { marabu.render(); },"CmdOrCtrl+R");
-    //TODO: Poo
     this.controller.add("default","File","Multi-track Render",() => { marabu.render_multi(); },"CmdOrCtrl+Shift+R")
     this.controller.add("default","File","Export Ins",() => { marabu.export_instrument(); },"CmdOrCtrl+I");
     this.controller.add("default","Edit","Inc BPM",() => { marabu.move_bpm(5) },">");
@@ -128,8 +127,8 @@ function Marabu()
 
     this.controller.add("cheatcode","*","Quit",() => { app.exit(); },"CmdOrCtrl+Q");
     this.controller.add("cheatcode","Mode","Stop",() => { marabu.cheatcode.stop(); },"Esc");
-    this.controller.add("cheatcode","Mode","Copy",() => { marabu.cheatcode.copy(); },"C");
-    this.controller.add("cheatcode","Mode","Paste",() => { marabu.cheatcode.paste(); },"V");
+    this.controller.add("cheatcode","Mode","Copy",() => { marabu.cheatcode.copy(); },"CmdOrCtrl+C");
+    this.controller.add("cheatcode","Mode","Paste",() => { marabu.cheatcode.paste(); },"CmdOrCtrl+V");
     this.controller.add("cheatcode","Mode","Erase",() => { marabu.cheatcode.del(); },"Backspace");
     this.controller.add("cheatcode","Effect","Inc Note +12",() => { marabu.cheatcode.mod(12); },"]");
     this.controller.add("cheatcode","Effect","Dec Note -12",() => { marabu.cheatcode.mod(-12); },"[");
