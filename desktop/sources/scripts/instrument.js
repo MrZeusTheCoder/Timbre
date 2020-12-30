@@ -45,7 +45,7 @@ function Instrument()
       },
       uv : {
         monitor    : new UI_Uv(),
-        phonotype : new UI_Switch({name_left: "MONO", name_right: "POLY", value: true }),
+        //phonotype : new UI_Switch({name_left: "MONO", name_right: "POLY", value: true }),
       }
     };
 
