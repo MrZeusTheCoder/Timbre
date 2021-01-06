@@ -1,14 +1,21 @@
 {
   "name": "marabu",
-  "version": "0.1.0",
-  "main": "main.js",
+  "version": "1.0.0",
+  "description": "A super cool music tracker.",
+  "license": "MIT",
+  "repository": {
+    "type": "Github",
+    "url": "https://github.com/MrZeusTheCoder/Marabu"
+  },
+  "main": "src/index.js",
   "scripts": {
-    "start": "electron .",
-    "clean": "rm -r ~/Desktop/Marabu-darwin-x64/ ; rm -r ~/Desktop/Marabu-linux-x64/ ; rm -r ~/Desktop/Marabu-win32-x64/ ; echo 'cleaned build location'",
+    "build": "npx tsc ; cp ./src/index.html ./build ; cp -r ./src/links/ ./build ; cp -r ./src/media/ ./build/",
+    "start": "cd ./build ; electron .",
+    "clean": "rm -rf ./build ; rm -r ~/Desktop/Marabu-darwin-x64/ ; rm -r ~/Desktop/Marabu-linux-x64/ ; rm -r ~/Desktop/Marabu-win32-x64/ ; echo 'cleaned build location'",
     "build_osx": "electron-packager . Marabu --platform=darwin --arch=x64 --out ~/Desktop/ --overwrite --icon=icon.icns ; echo 'Built for OSX'",
     "build_linux": "electron-packager . Marabu --platform=linux  --arch=x64 --out ~/Desktop/ --overwrite --icon=icon.ico ; echo 'Built for LINUX'",
     "build_win": "electron-packager . Marabu --platform=win32  --arch=x64 --out ~/Desktop/ --overwrite --icon=icon.ico ; echo 'Built for WIN'",
-    "build": "npm run clean ; npm run build_osx ; npm run build_linux ; npm run build_win",
+    "package": "npm run clean ; npm run build_osx ; npm run build_linux ; npm run build_win",
     "push_osx": "~/butler push ~/Desktop/Marabu-darwin-x64/ hundredrabbits/marabu:osx-64",
     "push_linux": "~/butler push ~/Desktop/Marabu-linux-x64/ hundredrabbits/marabu:linux-64",
     "push_win": "~/butler push ~/Desktop/Marabu-win32-x64/ hundredrabbits/marabu:windows-64",
@@ -17,7 +24,9 @@
     "push": "npm run build ; npm run push_theme ; npm run push_osx ; npm run push_linux ; npm run push_win ; npm run clean ; npm run push_status"
   },
   "devDependencies": {
-    "electron": "^1.8.1"
+    "@types/node": "^8.10.66",
+    "electron": "^11.1.1",
+    "typescript": "^4.1.3"
   },
   "dependencies": {
     "electron-packager": "^15.2.0"
