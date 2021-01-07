@@ -1,4 +1,5 @@
-import { app } from "electron";
+import { app, Event } from "electron";
+import { TextEncoder } from "util";
 import { is_json } from "./util";
 
 export interface ThemeMetadata {
@@ -8,15 +9,15 @@ export interface ThemeMetadata {
 }
 
 export interface ThemeData {
-    background?: string;
-    f_high?: string;
-    f_med?: string;
-    f_low?: string;
-    f_inv?: string;
-    b_high?: string;
-    b_med?: string;
-    b_low?: string;
-    b_inv?: string;
+    background: string;
+    f_high: string;
+    f_med: string;
+    f_low: string;
+    f_inv: string;
+    b_high: string;
+    b_med: string;
+    b_low: string;
+    b_inv: string;
 }
 
 export interface ThemeJSON {
@@ -25,75 +26,119 @@ export interface ThemeJSON {
 }
 
 export class Theme {
-    static readonly default_theme: ThemeJSON = { meta: {}, data: { background: "#222", f_high: "#fff", f_med: "#777", f_low: "#444", f_inv: "#000", b_high: "#000", b_med: "#affec7", b_low: "#000", b_inv: "#affec7" } };
-    el: any;
+    static readonly default_theme_json: ThemeJSON = { meta: {}, data: { background: "#222", f_high: "#fff", f_med: "#777", f_low: "#444", f_inv: "#000", b_high: "#000", b_med: "#affec7", b_low: "#000", b_inv: "#affec7" } };
+    static readonly default_theme: Theme = new Theme(Theme.default_theme_json);
+    el: HTMLStyleElement;
     active_theme: ThemeJSON;
 
-    constructor() {
-        this.active_theme = Theme.default_theme;
-        el = document.createElement("style");
+    constructor(t?: ThemeJSON) {
+        this.active_theme = Theme.default_theme_json;
+        this.el = document.createElement("style");
+        
+        if(t){
+            this.load_theme(t);
+        }
     }
 
     start() {
-        this.load(localStorage.theme ? localStorage.theme : this.default, this.default);
+        this.load(localStorage.theme ? localStorage.theme : Theme.default_theme_json);
         window.addEventListener('dragover', this.drag_enter);
         window.addEventListener('drop', this.drag);
         document.head.appendChild(this.el)
     }
 
-    load(t, fall_back) {
-        var theme = is_json(t) ? JSON.parse(t).data : t.data;
+    load_theme(theme: ThemeJSON) {
+        var t: ThemeData = theme.data;
+        var css = `
+        :root {
+        --background: ${t.background};
+        --f_high: ${t.f_high};
+        --f_med: ${t.f_med};
+        --f_low: ${t.f_low};
+        --f_inv: ${t.f_inv};
+        --b_high: ${t.b_high};
+        --b_med: ${t.b_med};
+        --b_low: ${t.b_low};
+        --b_inv: ${t.b_inv};
+        }`;
 
-        if (!theme || !theme.background) {
-            if (fall_back) {
-                theme = fall_back.data;
-            } else {
-                return;
-            }
+        this.active_theme = theme;
+        this.el.textContent = css;
+        localStorage.setItem("theme", JSON.stringify(theme));
+    }
+
+    load(theme: string){
+        var t = null;
+        if(is_json(theme)){
+            t = JSON.parse(theme);
+        } else {
+            console.error("Error loading theme: ", theme);
+            return;
         }
 
-        var css = `
-    :root {
-      --background: ${theme.background};
-      --f_high: ${theme.f_high};
-      --f_med: ${theme.f_med};
-      --f_low: ${theme.f_low};
-      --f_inv: ${theme.f_inv};
-      --b_high: ${theme.b_high};
-      --b_med: ${theme.b_med};
-      --b_low: ${theme.b_low};
-      --b_inv: ${theme.b_inv};
-    }`;
-
-        this.active = theme;
-        this.el.textContent = css;
-        localStorage.setItem("theme", JSON.stringify({ data: theme }));
+        var json_valid: [boolean, string] = this.json_is_theme(t);
+        if(!json_valid[0]){
+            console.error("Theme missing: ", json_valid[1]);
+            return;
+        } else {
+            this.load_theme(t as ThemeJSON);
+        }
     }
 
     reset() {
-        this.load(this.default);
+        this.load_theme(Theme.default_theme_json);
     }
 
-    drag_enter(e) {
+    drag_enter(e: DragEvent) {
         e.stopPropagation();
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
+        e.dataTransfer!.dropEffect = 'copy';
     }
 
-    drag(e) {
+    drag(e: DragEvent) {
         e.preventDefault();
         e.stopPropagation();
 
-        var file = e.dataTransfer.files[0];
+        var file = e.dataTransfer!.files[0];
 
-        if (!file.name || !file.name.indexOf(".thm") < 0) { console.log("Theme", "Not a theme"); return; }
+        if (!file.name || !(file.name.indexOf(".thm") < 0)) {
+            console.log("Theme", "Not a theme");
+            return;
+        }
 
         var reader = new FileReader();
+        var this_theme = this;
         reader.onload = function (e) {
-            app.load(e.target.result);
+            let result = e.target?.result;
+            if (result == null) { return; }
+            if (result instanceof ArrayBuffer) { return; }
+            this_theme.load(result);
         };
         reader.readAsText(file);
     }
-}
 
-module.exports = Theme;
+    json_is_theme(t: any): [boolean, string] {
+        if (!("background" in t)) {
+            return [false, "background"];
+        }
+
+        var colour_depths: string[] = [
+            "high",
+            "med",
+            "low",
+            "inv"
+        ]
+
+        for (var x in colour_depths) {
+            if (!(`f_${x}` in t)) {
+                return [false, `f_${x}`];
+            } else if (!(`b_${x}` in t)) {
+                return [false, `f_${x}`];
+            } else {
+                continue;
+            }
+        }
+
+        return [true, "clean"];
+    }
+}

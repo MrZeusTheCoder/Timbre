@@ -5,42 +5,69 @@ import { app } from "electron";
 import { Controller } from "../lib/controller";
 import { History } from "../lib/history";
 import { Theme } from "../lib/theme";
-//import {Theme} from "../lib/theme";
 
-class Marabu {
+import { Song } from "./song";
+
+export class Marabu {
+    //HTML
+    el: any = document.createElement("app");
+    wrapper_el: any = document.createElement("yu");
+
+    //Lib
     history: History;
     theme: Theme;
     controller: Controller;
 
+    //Components
+    song: Song;
+    sequencer: Sequencer;
+    editor: Editor;
+    instrument: Instrument;
+    cheatcode: Cheatcode;
+    loop: Loop;
+    arp: Arp;
+
+    //&c
+    static readonly channels = 16;
+
     constructor() {
+        //HTML
+        this.el = document.createElement("app");
+        this.el.style.opacity = 0;
+        this.el.id = "marabu";
+
+        this.wrapper_el = document.createElement("yu");
+        this.wrapper_el.className = "wrapper";
+        this.el.appendChild(this.wrapper_el);
+
+        document.body.appendChild(this.el);
+
+        //Lib
         this.controller = new Controller;
         this.history = new History();
         this.theme = new Theme();
+
+        //Components
+        this.song = new Song();
+        this.sequencer = new Sequencer();
+        this.editor = new Editor(8, 4);
+        this.instrument = new Instrument();
+        this.cheatcode = new Cheatcode();
+        this.loop = new Loop();
+        this.arp = new Arp();
     }
 }
 
-this.el = document.createElement("app");
-this.el.style.opacity = 0;
-this.el.id = "marabu";
 
-this.wrapper_el = document.createElement("yu");
-this.wrapper_el.className = "wrapper";
 
-this.el.appendChild(this.wrapper_el);
 
-document.body.appendChild(this.el);
+
+
+
 
 this.selection = { instrument: 0, track: 0, row: 0, octave: 5, control: 0 };
-this.channels = 16;
 
-this.song = new Song();
-this.sequencer = new Sequencer();
-this.editor = new Editor(8, 4);
-this.instrument = new Instrument();
 
-this.cheatcode = new Cheatcode();
-this.loop = new Loop();
-this.arp = new Arp();
 
 this.start = function () {
     this.wrapper_el.innerHTML += "<div id='sequencer'><table class='tracks' id='sequencer-table'></table></div><yu id='scrollbar'></yu><yu id='position'></yu>";
