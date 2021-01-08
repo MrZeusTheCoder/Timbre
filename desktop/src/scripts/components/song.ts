@@ -1,5 +1,6 @@
 import { calcSamplesPerRow } from "../lib/util";
 import { Marabu } from "../components/marabu";
+import { SongData } from "../lib/song/data";
 
 const CAudioTimer = require('../lib/audio/timer.js');
 const CJammer = require('../lib/audio/jammer.js');
@@ -13,8 +14,8 @@ export class Song {
     //Parent
     marabu: Marabu;
 
-    //Track Data
-    track: Track
+    //Song Data
+    data: SongData;
 
     //Audio
     audio: HTMLAudioElement;
@@ -23,65 +24,62 @@ export class Song {
     player: any;
     jammer: any;
 
-    constructor(parent: Marabu){
+    constructor(parent: Marabu) {
         this.marabu = parent;
-    
+
+        this.data = new SongData();
+
         this.jammer.start();
-        this.jammer.updateRowLen(this.track.rowLen);
-        
-        // Create audio element, and always play the audio as soon as it's ready
+        this.jammer.updateRowLen(this.data.get_samplesPerRow());
+
+        // Create audio element, and always play the audio as soon as it's ready.
         this.audio = new Audio();
         this.audioTimer.setAudioElement(this.audio);
         this.audio.addEventListener("canplay", function () { this.play(); }, true);
     }
 
     get_bpm() {
-        return Math.round((60 * 44100 / 4) / mSong.rowLen);
+        return Math.round((60 * 44100 / 4) / this.data.get_samplesPerRow());
     };
 
-    
+
     update_bpm(bpm: number) {
-        console.log(bpm)
-        this.rowLen = calcSamplesPerRow(bpm);
-        this.jammer.updateRowLen(this.rowLen);
+        console.log("Set BPM to: ", bpm)
+        this.jammer.updateRowLen(this.data.get_samplesPerRow());
     }
 
-    update_rpp(rpp: number){
+    update_rpp(rpp: number) {
         setPatternLength(rpp);
         this.marabu.update();
     }
 
-}
-
-this.play_note = function (note) {
-    mJammer.addNote(note + 87);
-}
-
-this.song = function () {
-    return mSong;
-}
-
-this.to_string = function () {
-    return JSON.stringify(this.song());
-}
-
-this.replace_song = function (new_song) {
-    if (!new_song.name) { return; }
-    stopAudio();
-
-    mSong = new_song;
-
-    this.update_bpm(mSong.bpm ? mSong.bpm : 120);
-    this.update_rpp(32);
-
-    // Inject names
-    for (id in this.song().songData) {
-        var ins = this.song().songData[id];
-        ins.name = ins.name && ins.name.length > 3 ? ins.name.substr(0, 4) : `INS${to_hex_val(id).toUpperCase()}`
+    play_note(note: number) {
+        this.jammer.addNote(note + 87);
     }
 
-    updateSongRanges();
+    song(): SongData {
+        return this.data;
+    }
+
+    to_string() {
+        return JSON.stringify(this.data);
+    }
+
+    replace_song(new_song: Song) {
+        stopAudio();
+
+        this.data = new_song.data;
+
+        this.update_bpm(this.data.bpm);
+        this.update_rpp(this.data.patternLen);
+
+        updateSongRanges();
+    }
 }
+
+
+
+
 
 this.mJammer_update = function () {
     return mJammer.updateInstr(this.instrument().i);

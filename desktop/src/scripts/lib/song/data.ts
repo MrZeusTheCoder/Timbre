@@ -10,14 +10,12 @@ export class SongData {
 
     // Metadata  
     artist: string;
-    name: string;
     bpm: number;
+    name: string;
+    //This is the theme that is saved along side the song,
+    //so on load it loads the same theme as was used when making it.
     theme: Theme;
 
-
-    // Automated
-    samplesPerRow: number;
-    endPattern: number;
     patternLen: number;
 
     //Tracks
@@ -28,9 +26,21 @@ export class SongData {
         this.name = "Untitled";
         this.bpm = 120;
         this.theme = Theme.default_theme;
-        this.samplesPerRow = calcSamplesPerRow(this.bpm);
-        this.endPattern = 2;
         this.patternLen = 32;
-        this.tracks = [];
+        this.tracks = Array<Track>();
+        this.tracks.fill(new Track());
+    }
+
+    get_samplesPerRow(): number {
+        return calcSamplesPerRow(this.bpm);
+    }
+
+    get_endPattern(): number {
+        var last_pattern: number = 1;
+        for(let x in this.tracks){
+            let x_last_pattern = x.get_endPattern();
+            last_pattern = (x_last_pattern > last_pattern) ? x_last_pattern : last_pattern;
+        }
+        return last_pattern;
     }
 };
