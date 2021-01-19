@@ -52,6 +52,7 @@ function Sequencer() {
         marabu.update();
     };
     this.update = function () {
+        
         var length = clamp(marabu.song.length, MIN_LENGTH, 256) + 3;
         var active_pat = marabu.song.pattern_at(marabu.selection.instrument, marabu.selection.track);
         if (length != this.length) {

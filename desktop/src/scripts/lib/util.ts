@@ -72,3 +72,14 @@ export function is_json(text: string) {
         return false;
     }
 }
+
+export function last_non_zero_index(array: number[]): number {
+    for(var i = array.length - 1; i >= 0; i--){
+        if(array[i] != 0){
+            return i;
+        } else {
+            continue;
+        }
+    }
+    return -1;
+}

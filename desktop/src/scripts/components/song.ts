@@ -1,6 +1,6 @@
 import { calcSamplesPerRow } from "../lib/util";
 import { Marabu } from "../components/marabu";
-import { SongData } from "../lib/song/data";
+import { SongData } from "../lib/song/segment";
 
 const CAudioTimer = require('../lib/audio/timer.js');
 const CJammer = require('../lib/audio/jammer.js');
@@ -75,25 +75,20 @@ export class Song {
 
         updateSongRanges();
     }
+
+    mJammer_update() {
+        return this.jammer.updateInstr(this.instrument().i);
+    }
+    
+    instrument(id = marabu.selection.instrument) {
+        return this.song().songData[id];
+    }
+
+    pattern_at(row, column) {
+        return this.song().songData[i].p[t];
+    }
 }
 
-
-
-
-
-this.mJammer_update = function () {
-    return mJammer.updateInstr(this.instrument().i);
-}
-
-this.instrument = function (id = marabu.selection.instrument) {
-    return this.song().songData[id];
-}
-
-//
-
-this.pattern_at = function (i, t) {
-    return this.song().songData[i].p[t];
-}
 
 this.inject_pattern_at = function (i, t, v) {
     this.song().songData[i].p[t] = v;

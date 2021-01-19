@@ -1,19 +1,20 @@
 import { InstrumentData } from "../instrument/data";
-import { TrackPattern } from "./pattern";
+import { PatternSegmentBank } from "./segment_bank";
 
+//A track that contains an instrument and a pattern bank.
 export class Track {
     static readonly MAX_PATTERNS = 32;
     static readonly MAX_ROWS = 32;
     private name: string;
     current_pattern: number;
-    pattern: TrackPattern;
+    pattern_bank: PatternSegmentBank;
 
     instrument_data: InstrumentData;
 
     constructor() {
         this.name = ">---";
         this.current_pattern = 0;
-        this.pattern = new TrackPattern();
+        this.pattern_bank = new PatternSegmentBank();
         this.instrument_data = InstrumentData.default;
     }
 

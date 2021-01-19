@@ -1,4 +1,5 @@
 import { Theme } from "../theme";
+import { PatternMatrix } from "./pattern_matrix";
 import { Track } from "./track";
 
 var { calcSamplesPerRow } = require('../lib/util.js');
@@ -21,24 +22,29 @@ export class SongData {
     //Tracks
     tracks: Track[];
 
+    //Pattern Matrix
+    matrix: PatternMatrix;
+
     constructor() {
         this.artist = "Unknown";
         this.name = "Untitled";
         this.bpm = 120;
         this.theme = Theme.default_theme;
         this.patternLen = 32;
-        this.tracks = Array<Track>();
+        this.tracks = Array<Track>(SongData.MAX_INSTRUMENTS);
         this.tracks.fill(new Track());
+        this.matrix = new PatternMatrix();
     }
 
-    get_samplesPerRow(): number {
+    //Samples as in sample rate samples.
+    get_samples_per_row(): number {
         return calcSamplesPerRow(this.bpm);
     }
 
-    get_endPattern(): number {
+    get_last_filled_row(): number {
         var last_pattern: number = 1;
-        for(let x in this.tracks){
-            let x_last_pattern = x.get_endPattern();
+        for(let x of this.tracks){
+            let x_last_pattern = x.pattern_bank.last_valid_pattern();
             last_pattern = (x_last_pattern > last_pattern) ? x_last_pattern : last_pattern;
         }
         return last_pattern;
