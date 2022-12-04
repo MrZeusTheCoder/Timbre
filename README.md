@@ -1,3 +1,5 @@
+> ⚠️ This repo is basically abandoned. It has some code in it to multi-track export Marabu projects... somewhere. It was intended to be a migration to Typescript and improvements from there.
+
 # Marabu
 
 Marabu is a free and open-source music tracker built from [Soundbox](https://github.com/mbitsnbites/soundbox).
